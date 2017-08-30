@@ -4,7 +4,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 
-namespace TuzAzureStore.Helpers
+namespace TusAzureStore.Helpers
 {
     internal static class AzureStorageClientFactory
     {

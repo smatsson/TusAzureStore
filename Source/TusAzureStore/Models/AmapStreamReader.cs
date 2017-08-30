@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TuzAzureStore.Models
+namespace TusAzureStore.Models
 {
     internal class AmapStreamReader
     {
@@ -34,6 +34,10 @@ namespace TuzAzureStore.Models
                 do
                 {
                     bytesRead = await _streamToRead.ReadAsync(byteBuffer, 0, remainingBytesToRead, cancellationToken);
+                    if (bytesRead == 0)
+                    {
+                        break;
+                    }
                     completeBuffer.AddRange(byteBuffer.Take(bytesRead));
                     remainingBytesToRead -= bytesRead;
 
@@ -54,23 +58,33 @@ namespace TuzAzureStore.Models
             if (LoadAborted)
             {
                 completeBuffer.AddRange(byteBuffer);
-
-                var lastIndexOfNonNull = int.MaxValue;
-
-                for (var i = completeBuffer.Count - 1; i > -1; i--)
-                {
-                    if (completeBuffer[i] != 0)
-                    {
-                        lastIndexOfNonNull = i;
-                        break;
-                    }
-                }
-
-                byteBuffer = completeBuffer.Take(lastIndexOfNonNull + 1).ToArray();
+                byteBuffer = GetStrippedBuffer(completeBuffer);
+            }
+            else
+            {
+                byteBuffer = completeBuffer.ToArray();
             }
 
             BytesRead = byteBuffer.Length;
             Data = byteBuffer;
+        }
+
+        private static byte[] GetStrippedBuffer(IReadOnlyList<byte> completeBuffer)
+        {
+            var lastIndexOfNonNull = int.MaxValue;
+
+            for (var i = completeBuffer.Count - 1; i > -1; i--)
+            {
+                if (completeBuffer[i] == 0)
+                {
+                    continue;
+                }
+
+                lastIndexOfNonNull = i;
+                break;
+            }
+
+            return completeBuffer.Take(lastIndexOfNonNull + 1).ToArray();
         }
     }
 }
